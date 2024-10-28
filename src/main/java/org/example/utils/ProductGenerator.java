@@ -1,5 +1,7 @@
 package org.example.utils;
 
+import org.example.domain.Inventory;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -8,6 +10,8 @@ import java.util.Random;
 public class ProductGenerator {
     private static final int PRODUCT_NAME_LENGTH = 10;
     private static final Random random = new Random();
+
+    private Inventory inventory;
 
     private static String generateRandomProductName() {
         StringBuilder productName = new StringBuilder(PRODUCT_NAME_LENGTH);

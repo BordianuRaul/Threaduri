@@ -7,7 +7,7 @@ public class Bill {
     private Map<Product, Integer> products;
     private long totalPrice;
 
-    Bill() {
+    public Bill() {
         this.products = new HashMap<>();
     }
 
