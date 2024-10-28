@@ -11,11 +11,11 @@ public class Product {
         this.price = price;
     }
 
-    String getName() {
+    public String getName() {
         return name;
     }
 
-    Long getPrice() {
+    public Long getPrice() {
         return price;
     }
 

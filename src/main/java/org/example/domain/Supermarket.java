@@ -1,7 +1,5 @@
 package org.example.domain;
 
-import org.example.utils.BillGenerator;
-
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
@@ -9,23 +7,22 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class Supermarket {
-    private static final int NR_OF_THREADS = 8;
-    private static final int CHECK_THRESHOLD = 100;
+    private static final int NR_OF_THREADS = 12;
+    private static final int CHECK_THRESHOLD = 1000;
 
     private final List<Bill> bills;
     private final List<Bill> listOfSales;
     private final Inventory inventory;
     private long profit;
 
-    public Supermarket(Inventory inventory) {
+    private final Object saleLock = new Object();
+    private final Object profitLock = new Object();
+
+    public Supermarket(Inventory inventory, List<Bill> bills) {
         this.inventory = inventory;
-        bills = BillGenerator.generateListOfBills(10000);
+        this.bills = bills;
         listOfSales = new ArrayList<>();
         profit = 0L;
-    }
-
-    public int nrOfProducts() {
-        return inventory.size();
     }
 
     private void computeBill(Bill bill) throws Exception {
@@ -43,10 +40,16 @@ public class Supermarket {
                 }
             }
         }
-        synchronized (this) {
-            profit += sale.getTotalPrice();
+        synchronized (listOfSales) {
             listOfSales.add(sale);
+
         }
+
+        synchronized (profitLock) {
+            profit += sale.getTotalPrice();
+        }
+
+
     }
 
     public void execute() throws Exception {
@@ -65,9 +68,15 @@ public class Supermarket {
                     processedBillsCount++;
 
                     if(processedBillsCount == CHECK_THRESHOLD) {
-                        synchronized (this) {
-                            printValidityCheckResult(listOfSales, profit);
+                        List<Bill> snapshotSales;
+                        long snapshotProfit;
+                        synchronized (saleLock) {
+                            snapshotSales = new ArrayList<>(listOfSales);
                         }
+                        synchronized (profitLock) {
+                            snapshotProfit = profit;
+                        }
+                        printValidityCheckResult(snapshotSales, snapshotProfit);
                         processedBillsCount = 0;
                     }
                 }
